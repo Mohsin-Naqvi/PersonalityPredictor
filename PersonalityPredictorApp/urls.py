@@ -3,14 +3,11 @@ from .views import PersonalityProcessorView
 from django.contrib import admin
 
 urlpatterns = [
+    path('', PersonalityProcessorView.index, name='home'),
     path('home', PersonalityProcessorView.index, name='home'),
 
     path('predict_personality',PersonalityProcessorView.PredictPersonality,name='predict_personality'),
-
-    # path('Getdata',DailyStockPredictionViews.StockPrediction_Get,name='GetPrediction'),
-    # path('Getgraph',DailyStockPredictionViews.StockPrediction_Getgraph,name='Getgraph'),
-    # path('AddTradingAction',TradingActionViews.TradingAction_Add,name='AddTradingAction'),
-    # path('GetTradingAction',TradingActionViews.TradingAction_Get,name='GetTradingAction'),
+    path('predict_personality_by_resume',PersonalityProcessorView.PredictPeronalityByResume,name='predict_personality_by_resume'),
     
 ]
 

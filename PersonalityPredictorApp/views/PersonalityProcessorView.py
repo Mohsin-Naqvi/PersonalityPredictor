@@ -1,6 +1,10 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+
+from PersonalityPredictorApp.forms import uploadResumeModelForm
+from PersonalityPredictorApp.models import uploadResumeModel
+
 #region CustomImports
 
 import re
@@ -22,6 +26,8 @@ from pdfminer.converter import TextConverter
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
+from django.templatetags.static import static
+from django.conf import settings
 
 #endregion
 
@@ -35,26 +41,34 @@ def PredictPersonality(request):
     responseDataDict = dict()
 
     userJD = request.GET["userJD"]
-    resumePath = 'D:/Mohsin-Naqvi/Practice Projects/Python/Personality Predictor/Project/Static/Resume/Resume.csv'
-    ttPath = 'D:/Mohsin-Naqvi/Practice Projects/Python/Personality Predictor/Project/Static/top10similarity'
-    dataPath="D:/Mohsin-Naqvi/Practice Projects/Python/Personality Predictor/Project/Static/data/data"
-    oceanKeywordsPath = 'D:/Mohsin-Naqvi/Practice Projects/Python/Personality Predictor/Project/Static/oceankeywords.csv'
-    print("in the action")
+    absolutePath = settings.BASE_DIR
+    
+    resumePath = str(absolutePath) + '/Static/Resume/CleanedResume.csv'
+    ttPath = str(absolutePath) + '/Static/top10similarity'
+    dataPath= str(absolutePath) + '/Static/data/data'
+    oceanKeywordsPath = str(absolutePath) + '/Static/oceankeywords.csv'
+    
     df = pd.read_csv(resumePath)
     df.head()
-    df['Cleaned Resume'] = df['Resume_str'].apply(lambda w: __preprocess(w))
+    #df['Cleaned Resume'] = df['Resume_str'].apply(lambda w: __preprocess(w))
     cr= df['Cleaned Resume']
     cs = []
-
-    for r in cr:    
-        clean_jd = __clean_job_decsription(userJD) ## Get a Keywords Cloud 
-        text1 = r 
-        #text1 = df["Cleaned Resume"][2]
-        text = [text1, userJD] 
-        score = __get_resume_score(text)
         
-        # print(score)
-        cs.append(score)
+    clean_jd = __clean_job_decsription(userJD)
+    for r in cr:
+        if r != "": ## Get a Keywords Cloud 
+            text1 = r 
+            #text1 = df["Cleaned Resume"][2]
+            text = [text1, clean_jd]
+            try:                
+                score = __get_resume_score(text)
+            except:
+                print("An exception occurred: " + str(text1))
+            
+            # print(score)
+            cs.append(score)
+        # else:
+        #     continue
 
     df['Cosine_similarity']= cs
     df.sort_values(['Cosine_similarity'], ascending=False)
@@ -67,6 +81,7 @@ def PredictPersonality(request):
 
     for i in tt.index: # read csv column having file names(ids)
         id= tt['ID'][i]
+
     #print(id)
     #ids = tt.ID.tolist()
         for r,d, f in os.walk(dataPath): 
@@ -87,10 +102,19 @@ def PredictPersonality(request):
                             text = text.lower()
 
                             eachResumeScore = __phrase_match(text,oceanKeywordsPath)
+                            eachResumeScore["resumeID"] = str(tt['ID'][i])
                             resumeScores["r"+str(len(resumeScores)+1)] = eachResumeScore
         
     responseDataDict["Result"] = resumeScores
+
     return JsonResponse(responseDataDict)
+
+
+def PredictPeronalityByResume(request):    
+    form = uploadResumeModelForm(request.POST, request.FILES)
+    if form.is_valid():
+        # form.save(commit=False)
+        print(form.file.name)
 
 #endregion
 
@@ -112,19 +136,19 @@ def __clean_job_decsription(jd):
      # remove stop words
      stop = stopwords.words('english')
      clean_jd = [w for w in clean_jd if not w in stop] 
-     return(clean_jd)
+     return str(' ').join(clean_jd)
 
 def __get_resume_score(text):
     cv = CountVectorizer(stop_words='english')
     count_matrix = cv.fit_transform(text)
     #Print the similarity scores
-    print("\nSimilarity Scores:")
+    # print("\nSimilarity Scores:")
      
     #get the match percentage
     matchPercentage = cosine_similarity(count_matrix)[0][1] * 100
     matchPercentage = round(matchPercentage, 2) # round to two decimal
      
-    print("Your resume matches about "+ str(matchPercentage)+ "% of the job description.")
+    # print("Your resume matches about "+ str(matchPercentage)+ "% of the job description.")
     return matchPercentage
 
 
@@ -179,13 +203,17 @@ def __phrase_match(text,path):
     for neuroticismWord in Neuroticism_words:
         if re.search(r"\b{}\b".format(neuroticismWord.lower()), text, re.IGNORECASE) is not None:
             NeuroticismCount += 1
-    
-    return dict(opennessCount = opennessCount, 
+            
+    oceanKeyWordsCountDict = dict(opennessCount = opennessCount, 
                 conscientiousnessCount = conscientiousnessCount, 
                 ExtraversionCount = ExtraversionCount,
                 AgreeablenessCount = AgreeablenessCount,
                 NeuroticismCount = NeuroticismCount
                 )
+    PredictedPeronsalityName = str(max(oceanKeyWordsCountDict,key=oceanKeyWordsCountDict.get)).upper().replace('COUNT','')
+    oceanKeyWordsCountDict['PredictedPeronsalityName'] = PredictedPeronsalityName
+
+    return oceanKeyWordsCountDict
 
     
 def __read_pdf_resume(pdf_doc):
@@ -211,5 +239,8 @@ def __read_word_resume(word_doc):
      text = text.replace("\n", "")
      if text:
          return text
+
+def __getFileExtenion(FileName):
+    return (FileName.split("."))[1]
 
 #endregion
