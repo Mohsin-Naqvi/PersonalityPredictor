@@ -110,11 +110,13 @@ def PredictPersonality(request):
     return JsonResponse(responseDataDict)
 
 
-def PredictPeronalityByResume(request):    
-    form = uploadResumeModelForm(request.POST, request.FILES)
-    if form.is_valid():
-        # form.save(commit=False)
-        print(form.file.name)
+def PredictPeronalityByResume(request):  
+
+    print(request) 
+    # form = uploadResumeModelForm(request.POST, request.FILES)
+    # if form.is_valid():
+    #     # form.save(commit=False)
+    #     print(form.file.name)
 
 #endregion
 
@@ -210,8 +212,18 @@ def __phrase_match(text,path):
                 AgreeablenessCount = AgreeablenessCount,
                 NeuroticismCount = NeuroticismCount
                 )
-    PredictedPeronsalityName = str(max(oceanKeyWordsCountDict,key=oceanKeyWordsCountDict.get)).upper().replace('COUNT','')
-    oceanKeyWordsCountDict['PredictedPeronsalityName'] = PredictedPeronsalityName
+    is_OceanKeyWordsCount_0 = all(value == 0 for value in oceanKeyWordsCountDict.values())
+    if is_OceanKeyWordsCount_0:
+        oceanKeyWordsCountDict['PredictedPeronsalityName'] = "NONE"
+    else:
+        maxValKey = str(max(oceanKeyWordsCountDict.values()))
+        reversedOceanKeyWordsCountDict = {}
+        for key, value in oceanKeyWordsCountDict.items():
+            reversedOceanKeyWordsCountDict.setdefault(str(value), set()).add(key)
+        
+        PredictedPeronsalityName = str(','.join(reversedOceanKeyWordsCountDict[maxValKey])).upper().replace('COUNT','')
+        # PredictedPeronsalityName = str(max(oceanKeyWordsCountDict,key=oceanKeyWordsCountDict.get)).upper().replace('COUNT','')
+        oceanKeyWordsCountDict['PredictedPeronsalityName'] = PredictedPeronsalityName
 
     return oceanKeyWordsCountDict
 

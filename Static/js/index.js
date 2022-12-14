@@ -47,13 +47,20 @@ function GetPredictPersonalityHandler(){
 }
 
 function GetPredictPersonalityByResumeHandler(){
+  debugger;  
+  //let CSRF = getCSRFCookie();
+  let formData = new FormData();           
+  formData.append("file", fileupload.files[0]);
+  console.log(formData)
     $.ajax({
       type: "POST",
       url: "/predict_personality_by_resume",
       dataType: 'JSON',
-      // data: {
-      //     userJD: userJD
-      // },
+      data: {
+        csrfmiddlewaretoken: CSRF,
+        file: formData
+      },
+      enctype: 'multipart/form-data',
       success: function (data) {               
           console.log(data)
       },
