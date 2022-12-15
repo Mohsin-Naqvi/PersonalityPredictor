@@ -1,9 +1,11 @@
+from distutils.command.clean import clean
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 
 from PersonalityPredictorApp.forms import uploadResumeModelForm
-from PersonalityPredictorApp.models import uploadResumeModel
+# from PersonalityPredictorApp.models import uploadResumeModel
+from django.views.decorators.csrf import csrf_exempt
 
 #region CustomImports
 
@@ -109,14 +111,65 @@ def PredictPersonality(request):
 
     return JsonResponse(responseDataDict)
 
+@csrf_exempt
+def PredictPeronalityByResume(request):
+    print("in PredictPeronalityByResume Action ")
+    responseDataDict = dict()
+    absolutePath = settings.BASE_DIR
 
-def PredictPeronalityByResume(request):  
+    resumePath = str(absolutePath) + '/Static/Resume/CleanedResume.csv'
+    ttPath = str(absolutePath) + '/Static/top10similarity'
+    oceanKeywordsPath = str(absolutePath) + '/Static/oceankeywords.csv'
+    writePath = str(absolutePath) + '/Static/Uploads/'
 
-    print(request) 
-    # form = uploadResumeModelForm(request.POST, request.FILES)
-    # if form.is_valid():
-    #     # form.save(commit=False)
-    #     print(form.file.name)
+    files = request.FILES.getlist('files[]', None)
+    userJD = request.POST.get("userJD")
+    resume = ""
+    # df = pd.read_csv(resumePath)
+    # df.head()
+    #df['Cleaned Resume'] = df['Resume_str'].apply(lambda w: __preprocess(w))
+    # cr= df['Cleaned Resume']
+    cs = []
+
+    for f in files:
+        fileUploadPath = writePath+f.name
+        with open(fileUploadPath, 'wb+') as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+        extn = (f.name.split("."))[1]
+        if extn == "pdf":
+            resume = __read_pdf_resume(str(fileUploadPath))
+        else:
+            resume = __read_word_resume(str(fileUploadPath))
+            print((f.name.split("."))[1])
+
+        clean_jd = __clean_job_decsription(userJD)
+
+        text = [resume,clean_jd]
+        score = __get_resume_score(text)
+        cs.append(score)
+        # df['Cosine_similarity']= cs
+
+    # df.sort_values(['Cosine_similarity'], ascending=False)
+    # df.nlargest(n=10, columns=['Cosine_similarity'])
+    
+    # tt = df.nlargest(n=10, columns=['Cosine_similarity'])
+    # tt.to_csv(ttPath)
+    
+        resumeScores = dict()
+
+        # text = extract_text(f)
+        # text = str(text)
+        # text = text.replace("\\n", "")
+        # text = text.lower()
+
+        eachResumeScore = __phrase_match(resume,oceanKeywordsPath)
+        eachResumeScore["resumeID"] = str((f.name.split("."))[0])
+        resumeScores["r"+str(len(resumeScores)+1)] = eachResumeScore
+
+        responseDataDict["Result"] = resumeScores
+
+    return JsonResponse(responseDataDict)
 
 #endregion
 

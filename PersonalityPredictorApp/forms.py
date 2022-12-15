@@ -1,7 +1,7 @@
 from django import forms
-from .models import uploadResumeModel
+# from .models import uploadResumeModel
 
 class uploadResumeModelForm(forms.ModelForm):
     class Meta:
-        model = uploadResumeModel
+        # model = uploadResumeModel
         fields = ('file',)
