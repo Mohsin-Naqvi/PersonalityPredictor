@@ -38,7 +38,7 @@ function GetPredictPersonalityHandler() {
       debugger
       //tblPersonalityPredicted
       for (let i = 0; i < Object.keys(data.Result).length; i++) {
-        var tableRow = '<tr><td>' + Object.values(data.Result)[i].resumeID + '</td><td>' + Object.values(data.Result)[i].opennessCount + '</td><td>' + Object.values(data.Result)[i].conscientiousnessCount + '</td><td>' + Object.values(data.Result)[i].ExtraversionCount + '</td><td>' + Object.values(data.Result)[i].AgreeablenessCount + '</td><td>' + Object.values(data.Result)[i].NeuroticismCount + '</td><td>' + Object.values(data.Result)[i].PredictedPeronsalityName + '</td></tr>';
+        var tableRow = '<tr><td>' + Object.values(data.Result)[i].resumeID + '</td><td>' + Object.values(data.Result)[i].CosineScore + '</td><td>' + Object.values(data.Result)[i].opennessCount + '</td><td>' + Object.values(data.Result)[i].conscientiousnessCount + '</td><td>' + Object.values(data.Result)[i].ExtraversionCount + '</td><td>' + Object.values(data.Result)[i].AgreeablenessCount + '</td><td>' + Object.values(data.Result)[i].NeuroticismCount + '</td><td>' + Object.values(data.Result)[i].PredictedPeronsalityName + '</td></tr>';
 
         $('#tblPersonalityPredicted').append(tableRow);
       }
@@ -81,7 +81,7 @@ function GetPredictPersonalityByResumeHandler() {
     type: 'POST',
     success: function (data) { // display success response      
       for (let i = 0; i < Object.keys(data.Result).length; i++) {
-        var tableRow = '<tr><td>' + Object.values(data.Result)[i].resumeID + '</td><td>' + Object.values(data.Result)[i].opennessCount + '</td><td>' + Object.values(data.Result)[i].conscientiousnessCount + '</td><td>' + Object.values(data.Result)[i].ExtraversionCount + '</td><td>' + Object.values(data.Result)[i].AgreeablenessCount + '</td><td>' + Object.values(data.Result)[i].NeuroticismCount + '</td><td>' + Object.values(data.Result)[i].PredictedPeronsalityName + '</td></tr>';
+        var tableRow = '<tr><td>' + Object.values(data.Result)[i].resumeID + '</td><td>' + Object.values(data.Result)[i].CosineScore + '</td><td>' + Object.values(data.Result)[i].opennessCount + '</td><td>' + Object.values(data.Result)[i].conscientiousnessCount + '</td><td>' + Object.values(data.Result)[i].ExtraversionCount + '</td><td>' + Object.values(data.Result)[i].AgreeablenessCount + '</td><td>' + Object.values(data.Result)[i].NeuroticismCount + '</td><td>' + Object.values(data.Result)[i].PredictedPeronsalityName + '</td></tr>';
 
         $('#tblPersonalityPredicted').append(tableRow);
       }

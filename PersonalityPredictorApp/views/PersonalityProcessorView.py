@@ -69,6 +69,7 @@ def PredictPersonality(request):
             
             # print(score)
             cs.append(score)
+
         # else:
         #     continue
 
@@ -105,6 +106,7 @@ def PredictPersonality(request):
 
                             eachResumeScore = __phrase_match(text,oceanKeywordsPath)
                             eachResumeScore["resumeID"] = str(tt['ID'][i])
+                            eachResumeScore["CosineScore"] = str(tt['Cosine_similarity'][i])
                             resumeScores["r"+str(len(resumeScores)+1)] = eachResumeScore
         
     responseDataDict["Result"] = resumeScores
@@ -147,24 +149,13 @@ def PredictPeronalityByResume(request):
 
         text = [resume,clean_jd]
         score = __get_resume_score(text)
-        cs.append(score)
-        # df['Cosine_similarity']= cs
-
-    # df.sort_values(['Cosine_similarity'], ascending=False)
-    # df.nlargest(n=10, columns=['Cosine_similarity'])
-    
-    # tt = df.nlargest(n=10, columns=['Cosine_similarity'])
-    # tt.to_csv(ttPath)
-    
+        cs.append(score)    
         resumeScores = dict()
-
-        # text = extract_text(f)
-        # text = str(text)
-        # text = text.replace("\\n", "")
-        # text = text.lower()
 
         eachResumeScore = __phrase_match(resume,oceanKeywordsPath)
         eachResumeScore["resumeID"] = str((f.name.split("."))[0])
+        eachResumeScore["CosineScore"] = str(score)
+
         resumeScores["r"+str(len(resumeScores)+1)] = eachResumeScore
 
         responseDataDict["Result"] = resumeScores
